@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* LDV theme — complement logo (Navy, Gold, Support Blue) */
+:root {
+  --ldv-primary: #0B2A3C;
+  --ldv-primary-hover: #071E2B;
+  --ldv-accent: #C9A24A;
+  --ldv-accent-hover: #B08E3F;
+  --ldv-support: #0F4C75;
+  --ldv-background: #FFFFFF;
+  --ldv-surface: #F7FAFC;
+  --ldv-border: #E5E7EB;
+  --ldv-text-primary: #0B2A3C;
+  --ldv-text-muted: #5B6B76;
+}
+
+body {
+  @apply bg-[var(--ldv-background)] text-[var(--ldv-text-primary)] antialiased;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+}
+
+/* Authority typography — regulator-grade, not playful */
+h1, h2, h3, .font-authority {
+  @apply tracking-tight;
+  letter-spacing: -0.02em;
+}
+
+/* Focus ring for accessibility (gold) */
+*:focus-visible {
+  @apply outline-none ring-2 ring-[var(--ldv-accent)] ring-offset-2;
+}
+
+/* High-contrast links */
+a {
+  @apply text-support hover:underline;
+}
+
+/* Buttons */
+.btn-primary {
+  @apply bg-primary hover:bg-primary-hover text-white font-medium px-4 py-2 rounded-md border-0 cursor-pointer;
+}
+.btn-secondary {
+  @apply bg-white text-primary border border-[var(--ldv-border)] hover:bg-surface font-medium px-4 py-2 rounded-md cursor-pointer;
+}
+.btn-accent {
+  @apply bg-accent hover:bg-accent-hover text-primary font-medium px-4 py-2 rounded-md border-0 cursor-pointer;
+}
+
+/* Status chips — neutral, don't overbrand */
+.chip-success {
+  @apply bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded;
+}
+.chip-running {
+  @apply bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded;
+}
+.chip-failed {
+  @apply bg-red-100 text-red-800 text-xs font-semibold px-2 py-0.5 rounded;
+}
+
+/* Tables */
+.table-container {
+  @apply overflow-auto border border-[var(--ldv-border)] rounded-lg;
+}
+.table-container table {
+  @apply w-full border-collapse text-sm;
+}
+.table-container th {
+  @apply bg-surface text-[var(--ldv-text-muted)] font-semibold text-left px-3 py-2 border-b border-[var(--ldv-border)] sticky top-0 z-10;
+}
+.table-container td {
+  @apply px-3 py-2 border-b border-[var(--ldv-border)];
+}
+.table-container tbody tr:hover {
+  background-color: color-mix(in srgb, var(--ldv-surface) 70%, transparent);
+}
+
+/* KPI card accent line (gold) */
+.kpi-card {
+  @apply bg-white border border-[var(--ldv-border)] rounded-lg p-3 relative overflow-hidden;
+}
+.kpi-card::before {
+  content: '';
+  @apply absolute top-0 left-0 w-1 h-full bg-accent;
+}
+
+/* --- Architecture / Lineage Mermaid diagrams --- */
+/* Edge stroke: LDV accent (gold), accessible contrast */
+.mermaid .edgePath path {
+  stroke: var(--ldv-accent);
+  stroke-width: 2;
+}
+
+/* Animated flowing edges when wrapper has .animate-lineage */
+.animate-lineage .mermaid .edgePath path {
+  stroke-dasharray: 6 6;
+  animation: mermaid-dash 1.5s linear infinite;
+}
+
+@keyframes mermaid-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+/* Node styling: navy borders, white/surface backgrounds (reinforce theme) */
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node polygon {
+  stroke: var(--ldv-primary);
+}
+.mermaid .node .label {
+  color: var(--ldv-text-primary);
+}
