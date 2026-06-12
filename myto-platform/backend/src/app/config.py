@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     api_port: int = 8000
     log_level: str = "INFO"
     myto_list_base_url: str = "https://nerc.gov.ng/resource-category/myto"
+    tanna_connector_token: str = ""
 
     class Config:
         env_file = ".env"

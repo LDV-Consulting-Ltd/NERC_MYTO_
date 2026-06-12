@@ -92,6 +92,47 @@ Pipeline Operations shows **resolvedV1** and **healthUrl** in the debug block so
 
 All endpoints are under `/v1`. Responses use an **envelope**: `{ "data": ..., "meta": { "snapshot_run_id", "refreshed_at", "count", "next_cursor", "limit", "offset" } }`. Query endpoints default to `*_latest` snapshot where applicable.
 
+### GridSight product manifest
+
+The canonical product name is **GridSight** (legacy codebase names such as MYTO Platform / URIP remain unchanged). A static manifest for connector registration and discovery is available at:
+
+- `GET /v1/product/manifest` — returns `product_id`, capabilities, limitations, legacy aliases, OpenAPI URL, and documentation references (no DB or ETL calls).
+
+### GridSight knowledge assets
+
+Evidence-backed knowledge surface for connector registration and glossaries (no AI summaries, vector search, or file writes):
+
+- `GET /v1/product/knowledge-assets` — returns column dictionary, dataset catalog, DQ rules, governance policies, lineage graph metadata, catalog entries, and repository documentation references with short content previews. Missing docs are omitted with warnings, not fabricated.
+
+### GridSight entity surface
+
+Evidence-backed entity type catalog for connector registration (type summaries in v0.1; instances via backing APIs):
+
+- `GET /v1/product/entities` — returns seven allowed entity types (Disco, Feeder, Location, Period, Supply Commitment, PDF Document, ETL Run) with stable ID patterns (`gridsight:entity:{type}:{identifier}`), backing tables, backing APIs, attributes, evidence, and limitations. No DB writes or ETL calls.
+
+### GridSight relationship surface
+
+Evidence-backed table relationships for connector registration (from lineage registry, gold FKs, governance lineage, traceability fields):
+
+- `GET /v1/product/relationships` — returns relationships with stable IDs (`gridsight:relationship:{source}:{type}:{target}`), evidence from lineage graph edges, DB foreign keys, registry definitions, and API sources. No invented mesh edges, DB writes, or ETL calls.
+
+### GridSight rule-based signals
+
+Operational signals answering “what requires attention?” from existing metrics only (no AI, ML, or forecasting):
+
+- `GET /v1/product/signals` — returns rule-based signals (`dq_score_signal`, `geocode_coverage_signal`, `extraction_coverage_signal`, `pipeline_success_signal`, `snapshot_freshness_signal`, `pipeline_running_signal`, `scheduler_status_signal`) with severity, confidence (0–1), evidence, and backing API/table references. Read-only DB queries; no writes or ETL. Does not expose patterns, illuminations, or decision products.
+
+### GridSight Tanna connector
+
+Bearer-authenticated connector surface for Tanna registration (separate from `/v1/*` routes):
+
+- Base path: `/api/v1/tanna`
+- Set `TANNA_CONNECTOR_TOKEN` in `.env` (see `.env.example`)
+- All routes require `Authorization: Bearer <TANNA_CONNECTOR_TOKEN>` (401 without header)
+- `GET /api/v1/tanna/manifest` — returns `module_id: gridsight` plus connector metadata
+- Also: `/health`, `/status`, `/data-products`, `/entities`, `/relationships`, `/signals`, `/knowledge-assets`
+- `/patterns`, `/illuminations`, `/decision-products` return `implementation_status: not_implemented`
+
 ### Health
 - `GET /v1/health` — liveness
 

@@ -23,8 +23,10 @@ from app.api.routes import (
     layers,
     lineage,
     catalog,
+    product,
     debug as debug_router,
 )
+from app.tanna_connector.router import router as tanna_connector_router
 # Optional: from app.api.middleware import RateLimitMiddleware, APIKeyMiddleware
 
 
@@ -78,6 +80,8 @@ app = FastAPI(
         {"name": "Agent"},
         {"name": "Lineage"},
         {"name": "Catalog"},
+        {"name": "Product"},
+        {"name": "Tanna"},
     ],
 )
 app.add_middleware(
@@ -110,6 +114,8 @@ app.include_router(tenants.router, prefix="/v1/tenants", tags=["Tenants"])
 app.include_router(agent.router, prefix="/v1/agent", tags=["Agent"])
 app.include_router(lineage.router, prefix="/v1/lineage", tags=["Lineage"])
 app.include_router(catalog.router, prefix="/v1/catalog", tags=["Catalog"])
+app.include_router(product.router, prefix="/v1/product", tags=["Product"])
+app.include_router(tanna_connector_router, prefix="/api/v1/tanna", tags=["Tanna"])
 app.include_router(debug_router.router, prefix="/v1", tags=["Debug"])
 
 
