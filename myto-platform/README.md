@@ -23,6 +23,8 @@ Root `vercel.json` deploys **frontend** (public) and **backend** (internal) as o
 
 Local multi-service: run `vercel dev` from the repository root (injects bindings).
 
+**Vercel Python bundle size:** Core API deps stay under the 500 MB function limit. Heavy PDF libraries (`pymupdf`, `camelot-py[cv]` / OpenCV) are an optional `[etl]` extra — install with `pip install -e ".[etl]"` or `pip install -r requirements.txt` for Docker/local pipeline runs. On Vercel, extract/debug PDF routes need those packages only if you add the `etl` extra (not recommended for the default API deploy).
+
 ## Local development
 
 ### Prerequisites

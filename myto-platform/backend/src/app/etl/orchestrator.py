@@ -15,11 +15,11 @@ from app.models.bronze import EtlRun, EtlStage, EtlEvent
 from app.etl.stages import discover as stage_discover
 from app.etl.stages import resolve as stage_resolve
 from app.etl.stages import download as stage_download
-from app.etl.stages import extract as stage_extract
 from app.etl.stages import silver_transform as stage_silver_transform
 from app.etl.stages import silver_geocode as stage_silver_geocode
 from app.etl.stages import gold_build as stage_gold_build
 from app.etl.stages import promote_latest as stage_promote_latest
+# extract stage imports pymupdf/camelot — load lazily so Vercel API bundles stay lean
 
 
 STAGES_FULL = [
@@ -134,6 +134,8 @@ async def run_pipeline(
                     succ, err = await stage_download.download_pdfs(session, run_id)
                     await _stage_finish(session, run_id, stage_name, "success", output_count=succ, error_count=err, duration_ms=int((time.perf_counter() - t0) * 1000))
                 elif stage_name == "extract":
+                    from app.etl.stages import extract as stage_extract
+
                     tables, _ = await stage_extract.extract_tables(session, run_id)
                     await _stage_finish(session, run_id, stage_name, "success", output_count=tables, duration_ms=int((time.perf_counter() - t0) * 1000))
                 elif stage_name == "silver_transform":

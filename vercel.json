@@ -4,7 +4,12 @@
     "backend": {
       "root": "myto-platform/backend",
       "framework": "fastapi",
-      "entrypoint": "main:app"
+      "entrypoint": "main:app",
+      "functions": {
+        "main.py": {
+          "excludeFiles": "{tests/**,**/*.test.py,**/test_*.py,.venv/**,.vercel/**,**/*.egg-info/**,**/__pycache__/**,docs/**}"
+        }
+      }
     },
     "frontend": {
       "root": "myto-platform/frontend",

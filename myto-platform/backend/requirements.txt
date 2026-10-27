@@ -1,16 +1,21 @@
-# Backend dependencies (from pyproject.toml). Use when pip can reach PyPI.
-# Install: pip install -r requirements.txt
-# Then run (from backend dir): set PYTHONPATH=src && python -m uvicorn app.main:app --reload --port 8000
+# Full backend install including PDF ETL (Docker / local pipeline).
+# Vercel installs pyproject.toml core deps only (no [etl]) to stay under 500 MB.
+#
+# Docker / full local:
+#   pip install -r requirements.txt
+#   # or: pip install -e ".[etl]"
+#
+# API-only / Vercel-sized:
+#   pip install -e .
+
 fastapi>=0.109
-uvicorn[standard]>=0.27
+uvicorn>=0.27
 sqlalchemy[asyncio]>=2.0
 psycopg[binary,pool]>=3.1
 alembic>=1.13
 httpx>=0.26
 selectolax>=0.3
 tenacity>=8.2
-pymupdf>=1.24
-camelot-py>=0.11
 rapidfuzz>=3.6
 geopy>=2.4
 orjson>=3.9
@@ -18,4 +23,7 @@ pydantic>=2.5
 pydantic-settings>=2.1
 python-dotenv>=1.0
 geoalchemy2>=0.14
-asyncpg>=0.29
+
+# ETL extras (omit on Vercel)
+pymupdf>=1.24
+camelot-py[cv]>=0.11

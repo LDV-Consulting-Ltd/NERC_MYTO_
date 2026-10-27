@@ -1,12 +1,11 @@
 """
 Debug/verify endpoints: SLC signature and OCR reconstruction.
+
+Heavy PDF deps (pymupdf) are imported inside handlers so the Vercel API
+bundle can omit the optional [etl] extra.
 """
 import httpx
 from fastapi import APIRouter, Query, HTTPException
-
-from app.etl.slc_signature import get_signature_per_page
-from app.etl.ocr_engine import page_to_image, run_ocr_on_image, ocr_pdf_page
-from app.etl.ocr_reconstruct import reconstruct_table_from_boxes
 
 router = APIRouter(prefix="/debug", tags=["Debug"])
 
@@ -25,6 +24,8 @@ async def debug_slc_signature(pdf_url: str = Query(..., description="URL of the 
     Returns per-page: match_count, matched_tokens, is_candidate.
     Fetches PDF via HTTP and runs PyMuPDF text-only signature detection.
     """
+    from app.etl.slc_signature import get_signature_per_page
+
     data = await _fetch_pdf_bytes(pdf_url)
     pages = get_signature_per_page(data)
     return {
@@ -50,6 +51,9 @@ async def debug_ocr_reconstruct(
     Runs OCR on the given page (or uses cache if implemented with session),
     then reconstructs table: detected header row, column boundaries, reconstructed rows, confidence metrics.
     """
+    from app.etl.ocr_engine import page_to_image, run_ocr_on_image
+    from app.etl.ocr_reconstruct import reconstruct_table_from_boxes
+
     data = await _fetch_pdf_bytes(pdf_url)
     img = page_to_image(data, page_no)
     if not img:
@@ -59,6 +63,7 @@ async def debug_ocr_reconstruct(
     page_height = 792.0
     try:
         import fitz
+
         doc = fitz.open(stream=data, filetype="pdf")
         if 1 <= page_no <= len(doc):
             page = doc[page_no - 1]

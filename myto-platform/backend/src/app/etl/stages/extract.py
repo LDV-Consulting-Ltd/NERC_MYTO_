@@ -8,11 +8,6 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
 from app.models.bronze import PdfArtifact, PdfRegistry, PdfTableRaw
-from app.etl.extractors import pymupdf_tables
-from app.etl.extractors import camelot_tables
-from app.etl.slc_signature import get_signature_per_page, is_image_based_page
-
-
 async def extract_tables(session: AsyncSession, run_id: UUID) -> tuple[int, int]:
     """
     For each artifact: compute SLC signature per page, persist to pdf_page_signature.
@@ -20,6 +15,14 @@ async def extract_tables(session: AsyncSession, run_id: UUID) -> tuple[int, int]
     Image-based pages (text < 200) with 0 tables are skipped (OCR stage will handle later).
     Returns (tables_written, artifacts_processed).
     """
+    try:
+        from app.etl.extractors import camelot_tables, pymupdf_tables
+        from app.etl.slc_signature import get_signature_per_page, is_image_based_page
+    except ImportError as e:
+        raise RuntimeError(
+            "PDF extract requires optional ETL deps. Install with: pip install 'myto-backend[etl]'"
+        ) from e
+
     result = await session.execute(
         select(PdfArtifact.pdf_url, PdfArtifact.file_bytes, PdfArtifact.sha256).where(
             PdfArtifact.run_id == run_id,
