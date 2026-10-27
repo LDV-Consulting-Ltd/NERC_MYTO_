@@ -31,12 +31,13 @@ export function getRuntimeApiConfig(): {
   healthzUrl: string;
   healthUrl: string;
 } {
-  const envRaw =
-    typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE_URL != null
-      ? String(process.env.NEXT_PUBLIC_API_BASE_URL).trim()
-      : '(unset)';
-  const resolvedBase =
-    envRaw === '(unset)' || envRaw === '' ? '/api' : envRaw.replace(/\/$/, '');
+  // Match resolvePublicApiBase(): only a non-empty trimmed string counts as set.
+  // (Avoid `!= null` alone — empty string is not null but is not a usable base.)
+  const raw =
+    typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_API_BASE_URL : undefined;
+  const trimmed = typeof raw === 'string' ? raw.trim() : '';
+  const envRaw = trimmed || '(unset)';
+  const resolvedBase = resolvePublicApiBase();
   const resolvedV1 = `${resolvedBase}/v1`;
   const healthzUrl = `${resolvedV1}/healthz`;
   const healthUrl = `${resolvedV1}/health`;

@@ -18,7 +18,8 @@ Root `vercel.json` deploys **frontend** (public) and **backend** (internal) as o
 - Browser calls same-origin `/api/v1/*` → Next.js Route Handler → FastAPI via binding `BACKEND_URL`
 - Do **not** set `BACKEND_URL` yourself on Vercel; the service binding injects it
 - Optional: `NEXT_PUBLIC_API_BASE_URL=/api` (also the default when unset)
-- Docker Compose can keep using `BACKEND_INTERNAL_URL=http://backend:8000`
+- **Docker Compose:** set `BACKEND_INTERNAL_URL=http://backend:8000` on the frontend service (already in `docker-compose.yml`). Fallback if unset is also `http://backend:8000`.
+- **Host-local Next + uvicorn:** set `BACKEND_INTERNAL_URL=http://127.0.0.1:8000` (see `.env.example`).
 
 Local multi-service: run `vercel dev` from the repository root (injects bindings).
 

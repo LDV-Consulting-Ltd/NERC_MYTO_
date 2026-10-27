@@ -3,8 +3,9 @@
  *
  * Backend base URL (server-only; never NEXT_PUBLIC_*):
  * - BACKEND_URL — Vercel service binding (preferred on Vercel)
- * - BACKEND_INTERNAL_URL — Docker Compose / self-hosted
- * - http://127.0.0.1:8000 — local uvicorn
+ * - BACKEND_INTERNAL_URL — Docker Compose / self-hosted (set in compose; required if not using default)
+ * - fallback http://backend:8000 — Docker Compose service DNS
+ * - host-local next+uvicorn: set BACKEND_INTERNAL_URL=http://127.0.0.1:8000
  *
  * Path mapping:
  * - /api/v1/tanna/*  → backend /api/v1/tanna/*  (Tanna connector mount)
