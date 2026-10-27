@@ -12,14 +12,8 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from app.models.bronze import EtlRun, EtlStage, EtlEvent
-from app.etl.stages import discover as stage_discover
-from app.etl.stages import resolve as stage_resolve
-from app.etl.stages import download as stage_download
-from app.etl.stages import silver_transform as stage_silver_transform
-from app.etl.stages import silver_geocode as stage_silver_geocode
-from app.etl.stages import gold_build as stage_gold_build
-from app.etl.stages import promote_latest as stage_promote_latest
-# extract stage imports pymupdf/camelot — load lazily so Vercel API bundles stay lean
+# Stage modules (selectolax / pymupdf / camelot) load lazily so Vercel cold start
+# can import app.main without pulling ETL parsers into every request.
 
 
 STAGES_FULL = [
@@ -125,12 +119,18 @@ async def run_pipeline(
             await _stage_start(session, run_id, stage_name)
             try:
                 if stage_name == "discover":
+                    from app.etl.stages import discover as stage_discover
+                    from app.etl.stages import resolve as stage_resolve
+                    from app.etl.stages import download as stage_download
+
                     async def on_page_done(sess, rid, page_entries):
                         await stage_resolve.resolve_for_entries(sess, rid, page_entries)
                         await stage_download.download_for_entries(sess, rid, page_entries)
                     out = await stage_discover.discover_myto_pdfs(session, run_id, on_page_done=on_page_done)
                     await _stage_finish(session, run_id, stage_name, "success", output_count=out, duration_ms=int((time.perf_counter() - t0) * 1000), meta={"pdf_count": out})
                 elif stage_name == "download":
+                    from app.etl.stages import download as stage_download
+
                     succ, err = await stage_download.download_pdfs(session, run_id)
                     await _stage_finish(session, run_id, stage_name, "success", output_count=succ, error_count=err, duration_ms=int((time.perf_counter() - t0) * 1000))
                 elif stage_name == "extract":
@@ -139,15 +139,23 @@ async def run_pipeline(
                     tables, _ = await stage_extract.extract_tables(session, run_id)
                     await _stage_finish(session, run_id, stage_name, "success", output_count=tables, duration_ms=int((time.perf_counter() - t0) * 1000))
                 elif stage_name == "silver_transform":
+                    from app.etl.stages import silver_transform as stage_silver_transform
+
                     count = await stage_silver_transform.silver_transform(session, run_id)
                     await _stage_finish(session, run_id, stage_name, "success", output_count=count, duration_ms=int((time.perf_counter() - t0) * 1000))
                 elif stage_name == "silver_geocode":
+                    from app.etl.stages import silver_geocode as stage_silver_geocode
+
                     count = await stage_silver_geocode.silver_geocode(session, run_id)
                     await _stage_finish(session, run_id, stage_name, "success", output_count=count, duration_ms=int((time.perf_counter() - t0) * 1000))
                 elif stage_name == "gold_build":
+                    from app.etl.stages import gold_build as stage_gold_build
+
                     count = await stage_gold_build.gold_build(session, run_id)
                     await _stage_finish(session, run_id, stage_name, "success", output_count=count, duration_ms=int((time.perf_counter() - t0) * 1000))
                 elif stage_name == "promote_latest":
+                    from app.etl.stages import promote_latest as stage_promote_latest
+
                     await stage_promote_latest.promote_latest(session, run_id)
                     await _stage_finish(session, run_id, stage_name, "success", duration_ms=int((time.perf_counter() - t0) * 1000))
             except Exception as e:
