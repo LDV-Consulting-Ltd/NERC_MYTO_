@@ -19,12 +19,22 @@ engine = create_async_engine(
     pool_size=5,
     max_overflow=10,
 )
-AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False, autoflush=False)
+_session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False, autoflush=False)
 Base = declarative_base()
 
 
+class _GuardedSessionFactory:
+    """Ensure Vercel misconfig is caught for every session, not only Depends(get_db)."""
+
+    def __call__(self, *args, **kwargs):
+        _settings.require_remote_database()
+        return _session_factory(*args, **kwargs)
+
+
+AsyncSessionLocal = _GuardedSessionFactory()
+
+
 async def get_db():
-    _settings.require_remote_database()
     async with AsyncSessionLocal() as session:
         try:
             yield session
