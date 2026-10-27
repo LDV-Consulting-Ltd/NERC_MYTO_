@@ -4,6 +4,11 @@ import { type NextRequest, NextResponse } from "next/server";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
+/**
+ * Session refresh helper for Next middleware / proxy.
+ * Not wired in this app: Vercel multi-service rejects Edge Function middleware
+ * from the frontend service. Use createClient from server/client instead.
+ */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -25,7 +30,6 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           );
-          // Prevent CDNs from caching responses that set auth cookies.
           Object.entries(headers).forEach(([key, value]) =>
             supabaseResponse.headers.set(key, value),
           );
@@ -34,7 +38,6 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Refresh the auth session cookie on each matched request.
   await supabase.auth.getUser();
 
   return supabaseResponse;

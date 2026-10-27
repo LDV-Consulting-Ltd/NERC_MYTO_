@@ -18,6 +18,7 @@ Root `vercel.json` deploys **frontend** (public) and **backend** (internal) as o
 - Browser calls same-origin `/api/v1/*` → Next.js Route Handler → FastAPI via binding `BACKEND_URL`
 - Do **not** set `BACKEND_URL` yourself on Vercel; the service binding injects it
 - Optional: `NEXT_PUBLIC_API_BASE_URL=/api` (also the default when unset)
+- **Next.js middleware:** not used under Vercel `services` (Edge Functions are rejected for the frontend service). Supabase helpers live in `frontend/src/utils/supabase/`; auth cookie refresh via middleware is unavailable until Vercel services support it.
 - **Required on Vercel:** set project env vars (Production + Preview), then redeploy:
   - `DATABASE_URL` — hosted Postgres (PostGIS preferred), e.g. Neon / Supabase / Vercel Postgres. Use `postgresql+psycopg://…` or `postgresql://…` (async driver is normalized). Do **not** use `localhost` / `127.0.0.1`.
   - `TANNA_CONNECTOR_TOKEN` — Bearer token for `/api/v1/tanna/*`
