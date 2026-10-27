@@ -18,6 +18,10 @@ Root `vercel.json` deploys **frontend** (public) and **backend** (internal) as o
 - Browser calls same-origin `/api/v1/*` → Next.js Route Handler → FastAPI via binding `BACKEND_URL`
 - Do **not** set `BACKEND_URL` yourself on Vercel; the service binding injects it
 - Optional: `NEXT_PUBLIC_API_BASE_URL=/api` (also the default when unset)
+- **Required on Vercel:** set project env vars (Production + Preview), then redeploy:
+  - `DATABASE_URL` — hosted Postgres (PostGIS preferred), e.g. Neon / Supabase / Vercel Postgres. Use `postgresql+psycopg://…` or `postgresql://…` (async driver is normalized). Do **not** use `localhost` / `127.0.0.1`.
+  - `TANNA_CONNECTOR_TOKEN` — Bearer token for `/api/v1/tanna/*`
+  - `CRON_SECRET` — if you use the scheduler trigger
 - **Docker Compose:** set `BACKEND_INTERNAL_URL=http://backend:8000` on the frontend service (already in `docker-compose.yml`). Fallback if unset is also `http://backend:8000`.
 - **Host-local Next + uvicorn:** set `BACKEND_INTERNAL_URL=http://127.0.0.1:8000` (see `.env.example`).
 

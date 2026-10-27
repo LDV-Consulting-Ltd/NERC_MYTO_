@@ -24,6 +24,7 @@ Base = declarative_base()
 
 
 async def get_db():
+    _settings.require_remote_database()
     async with AsyncSessionLocal() as session:
         try:
             yield session
