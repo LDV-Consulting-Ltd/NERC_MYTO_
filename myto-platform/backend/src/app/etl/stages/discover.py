@@ -10,7 +10,7 @@ import time
 from typing import Any, Callable, Optional
 from uuid import UUID
 import httpx
-from selectolax.parser import HTMLParser
+from selectolax.lexbor import LexborHTMLParser
 from tenacity import retry, stop_after_attempt, wait_exponential
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, insert, bindparam
@@ -63,7 +63,7 @@ def parse_myto_list_page(html: str, base_url: str) -> list[dict]:
     publish_date (time/.date/.entry-date/.post-date, fallback regex). De-dup by container.
     Returns List[CardItem] with title, publish_date_text, view_url, download_url, disco_code, month_name, year.
     """
-    parser = HTMLParser(html)
+    parser = LexborHTMLParser(html)
     base = base_url.rstrip("/").rsplit("/", 1)[0] + "/"
     if not base.endswith("/"):
         base += "/"
