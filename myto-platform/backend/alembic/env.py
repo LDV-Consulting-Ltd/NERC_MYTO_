@@ -20,7 +20,8 @@ settings = get_settings()
 url = settings.database_url
 if url.startswith("postgresql://"):
     url = url.replace("postgresql://", "postgresql+psycopg://", 1)
-config.set_main_option("sqlalchemy.url", url)
+# ConfigParser treats % as interpolation; escape for passwords like %23
+config.set_main_option("sqlalchemy.url", url.replace("%", "%%"))
 
 target_metadata = Base.metadata
 
