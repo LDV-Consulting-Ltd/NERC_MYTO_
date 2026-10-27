@@ -35,3 +35,7 @@ dev = ["pytest", "pytest-asyncio", "httpx"]
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["app*"]
+
+# Vercel FastAPI service entrypoint (backend/main.py re-exports app from src/)
+[tool.vercel]
+entrypoint = "main:app"

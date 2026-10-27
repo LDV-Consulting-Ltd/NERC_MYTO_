@@ -10,6 +10,18 @@ MYTO Platform is an **automatic end-to-end ELT product** for NERC MYTO (Multi-Ye
 4. **Admin**: DQ/Governance/Metrics/Metadata/Overrides only — not normal operations.
 5. **Geocoding**: Automatic — normalize → fuzzy match → cache-first → online fallback with rate limits.
 
+## Vercel (multi-service)
+
+Root `vercel.json` deploys **frontend** (public) and **backend** (internal) as one project:
+
+- Public traffic → `frontend` (catch-all `/`)
+- Browser calls same-origin `/api/v1/*` → Next.js Route Handler → FastAPI via binding `BACKEND_URL`
+- Do **not** set `BACKEND_URL` yourself on Vercel; the service binding injects it
+- Optional: `NEXT_PUBLIC_API_BASE_URL=/api` (also the default when unset)
+- Docker Compose can keep using `BACKEND_INTERNAL_URL=http://backend:8000`
+
+Local multi-service: run `vercel dev` from the repository root (injects bindings).
+
 ## Local development
 
 ### Prerequisites

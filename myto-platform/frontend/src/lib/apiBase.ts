@@ -1,10 +1,24 @@
 /**
- * Central API base URL. No reliance on Next rewrites — call backend directly.
- * Set NEXT_PUBLIC_API_BASE_URL (e.g. http://localhost:8000). Do NOT include /v1.
+ * Browser / client API base URL.
+ *
+ * Prefer same-origin `/api` so requests hit the Next.js Route Handler
+ * (`app/api/v1/[...path]`), which forwards to FastAPI via BACKEND_URL binding
+ * (Vercel) or BACKEND_INTERNAL_URL (Docker).
+ *
+ * Override with NEXT_PUBLIC_API_BASE_URL when calling the backend directly
+ * (e.g. http://localhost:8000 during local API-only work). Do NOT include /v1.
  */
-const RAW = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE_URL
-  ? process.env.NEXT_PUBLIC_API_BASE_URL.trim()
-  : 'http://localhost:8000';
+function resolvePublicApiBase(): string {
+  const fromEnv =
+    typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE_URL
+      ? process.env.NEXT_PUBLIC_API_BASE_URL.trim()
+      : '';
+  if (fromEnv) return fromEnv.replace(/\/$/, '');
+  // Default: same-origin Next proxy (Vercel + Docker compose pattern).
+  return '/api';
+}
+
+const RAW = resolvePublicApiBase();
 
 export const API_BASE = RAW.replace(/\/$/, '');
 export const V1 = `${API_BASE}/v1`;
@@ -21,7 +35,8 @@ export function getRuntimeApiConfig(): {
     typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE_URL != null
       ? String(process.env.NEXT_PUBLIC_API_BASE_URL).trim()
       : '(unset)';
-  const resolvedBase = envRaw === '(unset)' || envRaw === '' ? 'http://localhost:8000' : envRaw.replace(/\/$/, '');
+  const resolvedBase =
+    envRaw === '(unset)' || envRaw === '' ? '/api' : envRaw.replace(/\/$/, '');
   const resolvedV1 = `${resolvedBase}/v1`;
   const healthzUrl = `${resolvedV1}/healthz`;
   const healthUrl = `${resolvedV1}/health`;

@@ -1,9 +1,17 @@
 /**
- * Production-grade API proxy: forwards /api/v1/* to backend (Docker: backend:8000).
- * Uses BACKEND_INTERNAL_URL for the internal hop; do NOT use NEXT_PUBLIC_API_BASE_URL here.
+ * Production-grade API proxy: forwards /api/v1/* to the FastAPI backend.
+ *
+ * Backend base URL (server-only; never NEXT_PUBLIC_*):
+ * - BACKEND_URL — Vercel service binding (preferred on Vercel)
+ * - BACKEND_INTERNAL_URL — Docker Compose / self-hosted
+ * - http://127.0.0.1:8000 — local uvicorn
+ *
+ * Path mapping:
+ * - /api/v1/tanna/*  → backend /api/v1/tanna/*  (Tanna connector mount)
+ * - /api/v1/*        → backend /v1/*            (product API mount)
  */
 
-const BACKEND_BASE = process.env.BACKEND_INTERNAL_URL || 'http://backend:8000';
+import { getBackendBaseUrl } from '@/lib/backendUrl';
 
 const HOP_BY_HOP = new Set([
   'connection',
@@ -97,10 +105,13 @@ async function proxy(
   const { path } = await context.params;
   const pathSegments = Array.isArray(path) ? path : [path].filter(Boolean);
   const pathStr = pathSegments.length ? pathSegments.join('/') : '';
-  const base = BACKEND_BASE.replace(/\/$/, '');
+  const base = getBackendBaseUrl();
   const url = new URL(request.url);
   const query = url.searchParams.toString();
-  const targetUrl = `${base}/v1/${pathStr}${query ? `?${query}` : ''}`;
+  // Tanna connector is mounted at /api/v1/tanna on FastAPI; all other routes at /v1.
+  const backendPath =
+    pathSegments[0] === 'tanna' ? `/api/v1/${pathStr}` : `/v1/${pathStr}`;
+  const targetUrl = `${base}${backendPath}${query ? `?${query}` : ''}`;
 
   const forwardHeaders = sanitizeHeadersForForward(request.headers);
 
