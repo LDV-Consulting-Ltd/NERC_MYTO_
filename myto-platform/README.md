@@ -20,7 +20,7 @@ Root `vercel.json` deploys **frontend** (public) and **backend** (internal) as o
 - Optional: `NEXT_PUBLIC_API_BASE_URL=/api` (also the default when unset)
 - **Next.js middleware:** not used under Vercel `services` (Edge Functions are rejected for the frontend service). Supabase helpers live in `frontend/src/utils/supabase/`; auth cookie refresh via middleware is unavailable until Vercel services support it.
 - **Required on Vercel:** set project env vars (Production + Preview), then redeploy:
-  - `DATABASE_URL` — hosted Postgres (PostGIS preferred), e.g. Neon / Supabase / Vercel Postgres. Use `postgresql+psycopg://…` or `postgresql://…` (async driver is normalized). Do **not** use `localhost` / `127.0.0.1`.
+  - `DATABASE_URL` — hosted Postgres (PostGIS preferred). For Supabase on Vercel use the **transaction pooler** (`…pooler.supabase.com:6543`), not session mode (`:5432`) or direct `db.*` (IPv6). Backend uses `NullPool` + `prepare_threshold=None` when `VERCEL=1`.
   - `TANNA_CONNECTOR_TOKEN` — Bearer token for `/api/v1/tanna/*`
   - `CRON_SECRET` — if you use the scheduler trigger
 - **Docker Compose:** set `BACKEND_INTERNAL_URL=http://backend:8000` on the frontend service (already in `docker-compose.yml`). Fallback if unset is also `http://backend:8000`.

@@ -1,5 +1,8 @@
+import os
+
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
+from sqlalchemy.pool import NullPool
 from app.config import get_settings
 
 _settings = get_settings()
@@ -12,13 +15,21 @@ if "postgresql+psycopg://" in url and "+psycopg" not in url.split(":")[0]:
 # Ensure async driver for SQLAlchemy 2 async
 async_url = url.replace("postgresql+psycopg://", "postgresql+psycopg://", 1)
 
-engine = create_async_engine(
-    async_url,
-    echo=False,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10,
-)
+# Vercel / serverless: NullPool + no prepared statements (Supabase transaction pooler :6543).
+# Session pooler (:5432) caps at ~15 clients and is exhausted by default SQLAlchemy pools.
+_serverless = os.environ.get("VERCEL") == "1"
+_engine_kwargs: dict = {
+    "echo": False,
+    "pool_pre_ping": True,
+}
+if _serverless:
+    _engine_kwargs["poolclass"] = NullPool
+    _engine_kwargs["connect_args"] = {"prepare_threshold": None}
+else:
+    _engine_kwargs["pool_size"] = 5
+    _engine_kwargs["max_overflow"] = 10
+
+engine = create_async_engine(async_url, **_engine_kwargs)
 _session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False, autoflush=False)
 Base = declarative_base()
 
