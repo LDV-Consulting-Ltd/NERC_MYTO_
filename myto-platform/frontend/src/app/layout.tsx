@@ -1,11 +1,7 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
 import '../styles/globals.css';
 import { Providers } from './providers';
-import Sidebar from '@/components/Sidebar';
-import AuthorityStrip from '@/components/AuthorityStrip';
-import GlobalFiltersBar from '@/components/GlobalFiltersBar';
-import ProductHeader from '@/components/ProductHeader';
+import AppFrame from '@/components/AppFrame';
 
 export const metadata: Metadata = {
   title: 'LDV Electricity Data Infrastructure | NERC MYTO National Platform',
@@ -16,17 +12,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex">
+      <body className="min-h-screen">
         <Providers>
-          <Sidebar />
-          <div className="flex-1 flex flex-col min-w-0">
-            <AuthorityStrip />
-            <Suspense fallback={<div className="h-10 border-b border-[var(--ldv-border)]" />}>
-              <GlobalFiltersBar />
-            </Suspense>
-            <ProductHeader />
-            <main className="flex-1 p-4 overflow-auto">{children}</main>
-          </div>
+          <AppFrame>{children}</AppFrame>
         </Providers>
       </body>
     </html>
