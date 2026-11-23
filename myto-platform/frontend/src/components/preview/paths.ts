@@ -1,4 +1,4 @@
-/** Preview routes and the production screens they preserve. */
+/** Logical console paths and the public routes that serve them. */
 
 export const PREVIEW_BASE = '/preview/nerc-myto';
 
@@ -17,8 +17,8 @@ export const FEATURE_INVENTORY: FeatureLink[] = [
     label: 'National Overview',
     group: 'Intelligence',
     preview: PREVIEW_BASE,
-    production: '/',
-    productionNote: 'National Command Center',
+    production: '/overview',
+    productionNote: 'National overview',
   },
   {
     id: 'commitments',
@@ -49,8 +49,8 @@ export const FEATURE_INVENTORY: FeatureLink[] = [
     label: 'Regulatory Orders',
     group: 'Intelligence',
     preview: `${PREVIEW_BASE}/orders`,
-    production: '/explorer',
-    productionNote: 'No dedicated orders route. Source PDFs are evidence links on the explorer.',
+    production: '/orders',
+    productionNote: 'Regulatory orders',
   },
   {
     id: 'operations',
@@ -81,8 +81,8 @@ export const FEATURE_INVENTORY: FeatureLink[] = [
     label: 'Geocoding Review',
     group: 'Data Operations',
     preview: `${PREVIEW_BASE}/operations/geocoding`,
-    production: '/layers/silver',
-    productionNote: 'Geocode coverage is a Silver layer widget. No separate review route.',
+    production: '/geocoding',
+    productionNote: 'Geocoding review',
   },
   {
     id: 'bronze',
@@ -113,8 +113,8 @@ export const FEATURE_INVENTORY: FeatureLink[] = [
     label: 'Datasets',
     group: 'Catalog & Governance',
     preview: `${PREVIEW_BASE}/catalog`,
-    production: '/metadata',
-    productionNote: 'Dataset list lives on Metadata Catalog',
+    production: '/datasets',
+    productionNote: 'Dataset catalog',
   },
   {
     id: 'metadata',
@@ -190,28 +190,77 @@ export const FEATURE_INVENTORY: FeatureLink[] = [
   },
 ];
 
+export const FIXTURE_BASE = '/preview/fixtures';
+
+const LOGICAL_ROUTES: Record<string, string> = {
+  '': '/overview',
+  '/commitments': '/explorer',
+  '/discos': '/discos',
+  '/map': '/map',
+  '/orders': '/orders',
+  '/operations': '/pipeline',
+  '/operations/runs': '/runs',
+  '/operations/quality': '/dq',
+  '/operations/geocoding': '/geocoding',
+  '/warehouse/bronze': '/layers/bronze',
+  '/warehouse/silver': '/layers/silver',
+  '/warehouse/gold': '/layers/gold',
+  '/catalog': '/datasets',
+  '/catalog/metadata': '/metadata',
+  '/catalog/governance': '/governance',
+  '/catalog/lineage': '/lineage',
+  '/catalog/architecture': '/architecture',
+  '/catalog/observability': '/metrics',
+  '/catalog/apis': '/api-docs',
+  '/catalog/coverage': '/coverage',
+  '/agent': '/agent',
+  '/admin': '/admin',
+};
+
+function logicalSuffix(path = ''): string {
+  return path === '' || path === '/' ? '' : path.startsWith('/') ? path : `/${path}`;
+}
+
+/** Public route for a logical console path. Sample layouts never use this prefix. */
+export function productionPath(path = '/'): string {
+  const suffix = logicalSuffix(path);
+  if (Object.prototype.hasOwnProperty.call(LOGICAL_ROUTES, suffix)) return LOGICAL_ROUTES[suffix];
+  if (suffix.startsWith('/discos/')) return `/disco/${suffix.slice('/discos/'.length)}`;
+  if (suffix.startsWith('/operations/runs/')) return `/runs/${suffix.slice('/operations/runs/'.length)}`;
+  return suffix || '/overview';
+}
+
 export function previewHref(
   path = '',
   demo = false,
   params?: Record<string, string | number | null | undefined>
 ): string {
-  const suffix = path === '' || path === '/' ? '' : path.startsWith('/') ? path : `/${path}`;
+  const suffix = logicalSuffix(path);
+  const base = demo ? `${FIXTURE_BASE}${suffix}` : productionPath(suffix);
   const sp = new URLSearchParams();
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       if (value != null && value !== '') sp.set(key, String(value));
     }
   }
-  if (demo) sp.set('demo', '1');
   const q = sp.toString();
-  return `${PREVIEW_BASE}${suffix}${q ? `?${q}` : ''}`;
+  return `${base}${q ? `?${q}` : ''}`;
 }
 
+const EXACT_NAV = new Set([
+  '/overview',
+  '/pipeline',
+  '/datasets',
+  FIXTURE_BASE,
+  `${FIXTURE_BASE}/operations`,
+  `${FIXTURE_BASE}/catalog`,
+]);
+
 export function isNavActive(href: string, pathname: string): boolean {
-  if (href === PREVIEW_BASE) return pathname === PREVIEW_BASE;
-  if (href === `${PREVIEW_BASE}/operations`) return pathname === `${PREVIEW_BASE}/operations`;
-  if (href === `${PREVIEW_BASE}/catalog`) return pathname === `${PREVIEW_BASE}/catalog`;
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const path = href.split('?')[0];
+  if (EXACT_NAV.has(path)) return pathname === path;
+  if (path === '/discos') return pathname === '/discos' || pathname.startsWith('/disco/');
+  return pathname === path || pathname.startsWith(`${path}/`);
 }
 
 export type NavItem = { label: string; href: string; short: string };
@@ -222,43 +271,43 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'intelligence',
     label: 'Intelligence',
     items: [
-      { label: 'National Overview', href: PREVIEW_BASE, short: 'OV' },
-      { label: 'Commitments Explorer', href: `${PREVIEW_BASE}/commitments`, short: 'EX' },
-      { label: 'DisCo Profiles', href: `${PREVIEW_BASE}/discos`, short: 'DC' },
-      { label: 'Feeder Map', href: `${PREVIEW_BASE}/map`, short: 'MP' },
-      { label: 'Regulatory Orders', href: `${PREVIEW_BASE}/orders`, short: 'OR' },
+      { label: 'National Overview', href: '/', short: 'OV' },
+      { label: 'Commitments Explorer', href: '/commitments', short: 'EX' },
+      { label: 'DisCo Profiles', href: '/discos', short: 'DC' },
+      { label: 'Feeder Map', href: '/map', short: 'MP' },
+      { label: 'Regulatory Orders', href: '/orders', short: 'OR' },
     ],
   },
   {
     id: 'operations',
     label: 'Data Operations',
     items: [
-      { label: 'Control Panel', href: `${PREVIEW_BASE}/operations`, short: 'CP' },
-      { label: 'Pipeline Runs', href: `${PREVIEW_BASE}/operations/runs`, short: 'RN' },
-      { label: 'Data Quality', href: `${PREVIEW_BASE}/operations/quality`, short: 'DQ' },
-      { label: 'Geocoding Review', href: `${PREVIEW_BASE}/operations/geocoding`, short: 'GC' },
-      { label: 'Bronze', href: `${PREVIEW_BASE}/warehouse/bronze`, short: 'BR' },
-      { label: 'Silver', href: `${PREVIEW_BASE}/warehouse/silver`, short: 'SV' },
-      { label: 'Gold', href: `${PREVIEW_BASE}/warehouse/gold`, short: 'GD' },
+      { label: 'Control Panel', href: '/operations', short: 'CP' },
+      { label: 'Pipeline Runs', href: '/operations/runs', short: 'RN' },
+      { label: 'Data Quality', href: '/operations/quality', short: 'DQ' },
+      { label: 'Geocoding Review', href: '/operations/geocoding', short: 'GC' },
+      { label: 'Bronze', href: '/warehouse/bronze', short: 'BR' },
+      { label: 'Silver', href: '/warehouse/silver', short: 'SV' },
+      { label: 'Gold', href: '/warehouse/gold', short: 'GD' },
     ],
   },
   {
     id: 'catalog',
     label: 'Catalog & Governance',
     items: [
-      { label: 'Datasets', href: `${PREVIEW_BASE}/catalog`, short: 'DS' },
-      { label: 'Metadata Catalog', href: `${PREVIEW_BASE}/catalog/metadata`, short: 'MD' },
-      { label: 'Governance', href: `${PREVIEW_BASE}/catalog/governance`, short: 'GV' },
-      { label: 'Lineage', href: `${PREVIEW_BASE}/catalog/lineage`, short: 'LN' },
-      { label: 'Architecture', href: `${PREVIEW_BASE}/catalog/architecture`, short: 'AR' },
-      { label: 'Observability', href: `${PREVIEW_BASE}/catalog/observability`, short: 'OB' },
-      { label: 'APIs & Downloads', href: `${PREVIEW_BASE}/catalog/apis`, short: 'API' },
-      { label: 'Capability map', href: `${PREVIEW_BASE}/catalog/coverage`, short: 'CV' },
+      { label: 'Datasets', href: '/catalog', short: 'DS' },
+      { label: 'Metadata Catalog', href: '/catalog/metadata', short: 'MD' },
+      { label: 'Governance', href: '/catalog/governance', short: 'GV' },
+      { label: 'Lineage', href: '/catalog/lineage', short: 'LN' },
+      { label: 'Architecture', href: '/catalog/architecture', short: 'AR' },
+      { label: 'Observability', href: '/catalog/observability', short: 'OB' },
+      { label: 'APIs & Downloads', href: '/catalog/apis', short: 'API' },
+      { label: 'Capability map', href: '/catalog/coverage', short: 'CV' },
     ],
   },
 ];
 
 export const ACCESS_NAV: NavItem[] = [
-  { label: 'Regulatory Intelligence Agent', href: `${PREVIEW_BASE}/agent`, short: 'AG' },
-  { label: 'Admin', href: `${PREVIEW_BASE}/admin`, short: 'AD' },
+  { label: 'Regulatory Intelligence Agent', href: '/agent', short: 'AG' },
+  { label: 'Admin', href: '/admin', short: 'AD' },
 ];

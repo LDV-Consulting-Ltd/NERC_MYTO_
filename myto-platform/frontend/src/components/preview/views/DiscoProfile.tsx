@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getLatestMapPoints } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -17,7 +17,10 @@ import { GapNote, LoadingRows, MetricTile, PageHeader, SortTable, StateBlock, St
 
 export default function DiscoProfile() {
   const params = useParams();
-  const code = decodeURIComponent((params?.code as string) ?? '');
+  const pathname = usePathname() ?? '';
+  const fromParams = (params?.disco_code as string) || (params?.code as string) || '';
+  const fromPath = pathname.match(/\/(?:discos|disco)\/([^/]+)$/)?.[1] ?? '';
+  const code = decodeURIComponent(fromParams || fromPath);
   const demo = useDemo();
   const href = usePreviewHref();
   const [selected, setSelected] = useState<FeederSelection | null>(null);

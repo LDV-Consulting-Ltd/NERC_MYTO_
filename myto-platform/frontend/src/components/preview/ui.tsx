@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import { formatNumber } from '@/lib/format';
 
 export function PageHeader({
@@ -9,13 +8,12 @@ export function PageHeader({
   description,
   period,
   actions,
-  productionHref,
-  productionLabel = 'Open current screen',
 }: {
   title: string;
   description?: string;
   period?: string | null;
   actions?: React.ReactNode;
+  /** Kept so existing screens can pass it. The console no longer links out to a second interface. */
   productionHref?: string | null;
   productionLabel?: string;
 }) {
@@ -31,14 +29,7 @@ export function PageHeader({
         )}
         {description && <p className="pc-lede">{description}</p>}
       </div>
-      <div className="pc-page-head-actions">
-        {actions}
-        {productionHref && (
-          <Link className="pc-btn pc-btn-ghost" href={productionHref}>
-            {productionLabel}
-          </Link>
-        )}
-      </div>
+      {actions && <div className="pc-page-head-actions">{actions}</div>}
     </header>
   );
 }

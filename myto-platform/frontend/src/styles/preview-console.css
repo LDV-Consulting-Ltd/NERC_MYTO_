@@ -1,4 +1,4 @@
-/* Scoped to the preview console. Production routes do not render this root. */
+/* Scoped to the LDV Data Console shell. */
 .ldv-console {
   --pc-canvas: #f4f6f8;
   --pc-navy: #0b2340;
@@ -751,6 +751,27 @@
   font-size: 13px;
   font-weight: 600;
 }
+.ldv-console .pc-demo-banner a {
+  color: #5c4816;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.pc-side-link {
+  display: block;
+  margin: 10px 8px 0;
+  color: #d7e2ec;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ldv-console a.pc-side-link,
+.ldv-console a.pc-side-link:hover {
+  color: #d7e2ec;
+}
+.ldv-console.is-collapsed .pc-side-link {
+  display: none;
+}
 
 .pc-backdrop {
   display: none;
@@ -817,7 +838,8 @@
   .ldv-console.is-collapsed .pc-brand-text,
   .ldv-console.is-collapsed .pc-nav-label,
   .ldv-console.is-collapsed .pc-nav-full,
-  .ldv-console.is-collapsed .pc-side-extra {
+  .ldv-console.is-collapsed .pc-side-extra,
+  .ldv-console.is-collapsed .pc-side-link {
     display: block;
   }
   .ldv-console.is-collapsed .pc-nav-short { display: none; }

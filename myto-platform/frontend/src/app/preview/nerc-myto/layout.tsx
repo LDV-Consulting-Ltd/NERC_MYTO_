@@ -4,8 +4,8 @@ import '@/styles/preview-console.css';
 import PreviewShell from '@/components/preview/PreviewShell';
 
 export const metadata: Metadata = {
-  title: 'LDV Data Console · Electricity · NERC MYTO',
-  description: 'Preview of the NERC MYTO electricity workspace. Production routes are unchanged.',
+  title: 'LDV Data Console · NERC MYTO',
+  description: 'NERC MYTO electricity workspace. This address redirects to the live console.',
 };
 
 export default function PreviewLayout({ children }: { children: React.ReactNode }) {

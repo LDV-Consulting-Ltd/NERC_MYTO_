@@ -1,205 +1,119 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { useSnapshotMeta, useRuns, useMetricsPipeline } from '@/lib/hooks';
-import RunHistoryTable from '@/components/RunHistoryTable';
-import { formatPct, formatDate, formatNumber } from '@/lib/format';
-import { FreshnessBadge } from '@/components/TrustBadges';
+import { redirect } from 'next/navigation';
+import '@/styles/landing.css';
 
-export default function OverviewPage() {
-  const { data: meta, isLoading: metaLoading } = useSnapshotMeta();
-  const { data: runsRaw, isLoading: runsLoading } = useRuns(10, 0);
-  const runs = Array.isArray(runsRaw) ? runsRaw : [];
-  const { data: pipelineMetrics } = useMetricsPipeline(10);
+export const metadata: Metadata = {
+  title: 'LDV Data Console · NERC MYTO',
+  description:
+    'Explore published electricity supply commitments by distribution company, feeder, and service band.',
+};
 
-  const isEmpty =
-    !metaLoading &&
-    (meta?.disco_count == null || meta.disco_count === 0) &&
-    (meta?.total_rows == null || meta.total_rows === 0);
+const COMPANY_SITE = 'https://ldvconsultingltd.ng/';
+const NERC_MYTO = 'https://nerc.gov.ng/resource-category/myto';
+const FILTER_KEYS = ['disco', 'year', 'month', 'band', 'q'];
+
+const ENTRIES = [
+  {
+    href: '/explorer',
+    title: 'Commitments Explorer',
+    text: 'Filter published feeder commitments by distribution company, period, and service band.',
+  },
+  {
+    href: '/map',
+    title: 'Feeder Map',
+    text: 'See mapped feeders beside the records that still have no coordinates.',
+  },
+  {
+    href: '/discos',
+    title: 'DisCo Profiles',
+    text: 'Open a distribution company and its published commitment coverage.',
+  },
+  {
+    href: '/orders',
+    title: 'Regulatory Orders',
+    text: 'Group the source orders and PDF evidence attached to published commitments.',
+  },
+];
+
+type Search = Record<string, string | string[] | undefined>;
+
+export default async function LandingPage({ searchParams }: { searchParams: Promise<Search> }) {
+  const params = await searchParams;
+  const hasFilter = FILTER_KEYS.some((key) => {
+    const value = params[key];
+    return (typeof value === 'string' && value !== '') || (Array.isArray(value) && value.some(Boolean));
+  });
+  if (hasFilter) {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (typeof value === 'string') query.set(key, value);
+      else if (Array.isArray(value)) value.forEach((item) => query.append(key, item));
+    }
+    redirect(`/overview?${query.toString()}`);
+  }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-[var(--ldv-primary)] tracking-tight">
-          National Command Center
-        </h1>
-        <p className="text-sm text-[var(--ldv-text-muted)] mt-1">
-          Electricity data infrastructure — coverage, freshness, trust, and platform health.
-        </p>
-      </div>
-
-      {/* ROW 1 — Authority Snapshot Cards */}
-      <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--ldv-text-muted)] mb-3">
-          Authority snapshot
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="kpi-card p-4">
-            <div className="text-xs font-medium text-[var(--ldv-text-muted)]">National data coverage</div>
-            <div className="text-lg font-semibold text-[var(--ldv-primary)] mt-1">
-              {metaLoading ? '…' : isEmpty ? '—' : `${meta?.disco_count ?? 0} DisCos`}
-            </div>
-            <div className="text-xs text-[var(--ldv-text-muted)] mt-0.5">
-              {metaLoading ? '…' : isEmpty ? 'No data yet' : `${meta?.month_range ?? '—'} coverage`}
-            </div>
-          </div>
-          <div className="kpi-card p-4">
-            <div className="text-xs font-medium text-[var(--ldv-text-muted)]">Latest snapshot freshness</div>
-            <div className="text-lg font-semibold text-[var(--ldv-primary)] mt-1">
-              {metaLoading ? '…' : isEmpty ? '—' : formatDate(meta?.refreshed_at ?? null)}
-            </div>
-            {!metaLoading && !isEmpty && meta?.refreshed_at && (
-              <div className="mt-1.5">
-                <FreshnessBadge iso={meta.refreshed_at} />
-              </div>
-            )}
-          </div>
-          <div className="kpi-card p-4">
-            <div className="text-xs font-medium text-[var(--ldv-text-muted)]">National DQ score</div>
-            <div className="text-lg font-semibold text-[var(--ldv-primary)] mt-1">
-              {metaLoading ? '…' : isEmpty ? '—' : formatPct(meta?.dq_score, 0)}
-            </div>
-          </div>
-          <div className="kpi-card p-4">
-            <div className="text-xs font-medium text-[var(--ldv-text-muted)]">Geospatial coverage</div>
-            <div className="text-lg font-semibold text-[var(--ldv-primary)] mt-1">
-              {metaLoading ? '…' : isEmpty ? '—' : formatPct(meta?.geocode_coverage_pct, 1)}
-            </div>
-          </div>
-          <div className="kpi-card p-4">
-            <div className="text-xs font-medium text-[var(--ldv-text-muted)]">Extraction coverage</div>
-            <div className="text-lg font-semibold text-[var(--ldv-primary)] mt-1">
-              {metaLoading ? '…' : isEmpty ? '—' : formatPct(meta?.extraction_coverage_pct, 1)}
-            </div>
-          </div>
-          <div className="kpi-card p-4">
-            <div className="text-xs font-medium text-[var(--ldv-text-muted)]">Pipeline health</div>
-            <div className="text-lg font-semibold text-[var(--ldv-primary)] mt-1">
-              {metaLoading ? '…' : isEmpty ? '—' : formatPct(meta?.pipeline_success_rate, 0)}
-            </div>
+    <div className="ldv-landing">
+      <a className="ldv-skip" href="#landing-main">
+        Skip to content
+      </a>
+      <header className="ldv-bar">
+        <div className="ldv-brand">
+          <span className="ldv-mark" aria-hidden="true">LDV</span>
+          <div>
+            <strong>LDV Consulting</strong>
+            <span>LDV Data Console</span>
           </div>
         </div>
-      </section>
-
-      {/* ROW 2 — Two columns */}
-      <section className="grid md:grid-cols-2 gap-6 mb-8">
-        {/* LEFT: National Electricity Coverage Intelligence */}
-        <div className="border border-[var(--ldv-border)] rounded-lg bg-white overflow-hidden">
-          <div className="px-4 py-3 border-b border-[var(--ldv-border)] bg-[var(--ldv-surface)]">
-            <h2 className="text-base font-semibold text-[var(--ldv-primary)]">
-              National electricity coverage intelligence
-            </h2>
-          </div>
-          <div className="p-4 space-y-4">
-            <div>
-              <div className="text-xs font-medium text-[var(--ldv-text-muted)] mb-1">DisCo coverage</div>
-              <p className="text-sm text-[var(--ldv-text-primary)]">
-                {metaLoading ? '…' : isEmpty ? 'Awaiting first ingestion' : `${meta?.disco_count ?? 0} Distribution Companies`}
-              </p>
-            </div>
-            <div>
-              <div className="text-xs font-medium text-[var(--ldv-text-muted)] mb-1">Data volume</div>
-              <p className="text-sm font-semibold text-[var(--ldv-primary)]">
-                {metaLoading ? '…' : isEmpty ? '—' : formatNumber(meta?.total_rows ?? 0)}
-              </p>
-              <p className="text-xs text-[var(--ldv-text-muted)]">commitment records in latest snapshot</p>
-            </div>
-            <div>
-              <div className="text-xs font-medium text-[var(--ldv-text-muted)] mb-1">Month coverage</div>
-              <p className="text-sm text-[var(--ldv-text-primary)]">
-                {metaLoading ? '…' : meta?.month_range ?? '—'}
-              </p>
-            </div>
-            <div className="pt-2">
-              <Link href="/map" className="text-sm font-medium text-[var(--ldv-support)] hover:underline">
-                View national map →
-              </Link>
-              <span className="mx-2 text-[var(--ldv-border)]">|</span>
-              <Link href="/explorer" className="text-sm font-medium text-[var(--ldv-support)] hover:underline">
-                Explore data →
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT: Platform Health Intelligence */}
-        <div className="border border-[var(--ldv-border)] rounded-lg bg-white overflow-hidden">
-          <div className="px-4 py-3 border-b border-[var(--ldv-border)] bg-[var(--ldv-surface)]">
-            <h2 className="text-base font-semibold text-[var(--ldv-primary)]">
-              Platform health intelligence
-            </h2>
-          </div>
-          <div className="p-4 space-y-4">
-            <div>
-              <div className="text-xs font-medium text-[var(--ldv-text-muted)] mb-1">Pipeline success rate (recent)</div>
-              <p className="text-sm font-semibold text-[var(--ldv-primary)]">
-                {metaLoading ? '…' : isEmpty ? '—' : formatPct(meta?.pipeline_success_rate, 0)}
-              </p>
-            </div>
-            <div>
-              <div className="text-xs font-medium text-[var(--ldv-text-muted)] mb-1">DQ trend</div>
-              <p className="text-sm text-[var(--ldv-text-primary)]">
-                {meta?.dq_score != null ? `Current score: ${formatPct(meta.dq_score, 0)}` : '—'}
-              </p>
-              <p className="text-xs text-[var(--ldv-text-muted)]">See Data Quality for issues and trend.</p>
-            </div>
-            <div>
-              <div className="text-xs font-medium text-[var(--ldv-text-muted)] mb-1">Stage performance</div>
-              <ul className="text-sm space-y-0.5">
-                {(pipelineMetrics?.stages ?? []).slice(0, 5).map((s: { stage_name?: string; success_rate?: number }) => (
-                  <li key={s.stage_name}>
-                    <span className="font-mono text-xs">{s.stage_name}</span>{' '}
-                    {s.success_rate != null ? formatPct(s.success_rate, 0) : '—'}
-                  </li>
-                ))}
-                {(!pipelineMetrics?.stages || pipelineMetrics.stages.length === 0) && (
-                  <li className="text-[var(--ldv-text-muted)]">No stage metrics yet</li>
-                )}
-              </ul>
-            </div>
-            <div className="pt-2">
-              <Link href="/pipeline" className="text-sm font-medium text-[var(--ldv-support)] hover:underline">
-                Pipeline operations →
-              </Link>
-              <span className="mx-2 text-[var(--ldv-border)]">|</span>
-              <Link href="/metrics" className="text-sm font-medium text-[var(--ldv-support)] hover:underline">
-                Metrics & observability →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ROW 3 — National Data Activity Timeline */}
-      <section>
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--ldv-text-muted)] mb-3">
-          National data activity timeline
-        </h2>
-        <div className="border border-[var(--ldv-border)] rounded-lg bg-white overflow-hidden">
-          <div className="px-4 py-3 border-b border-[var(--ldv-border)] bg-[var(--ldv-surface)] flex justify-between items-center">
-            <span className="text-sm font-semibold text-[var(--ldv-primary)]">Last pipeline runs</span>
-            <Link href="/runs" className="text-sm text-[var(--ldv-support)] hover:underline">
-              View all
+        <a className="ldv-bar-link" href={COMPANY_SITE} target="_blank" rel="noopener noreferrer">
+          Company Website
+        </a>
+      </header>
+      <main id="landing-main">
+        <section className="ldv-hero">
+          <div className="ldv-wrap">
+            <p className="ldv-kicker">Electricity workspace</p>
+            <h1>LDV Data Console · NERC MYTO</h1>
+            <p>
+              Explore published electricity supply commitments by distribution company, feeder, and service band.
+            </p>
+            <Link className="ldv-cta" href="/overview">
+              Open NERC MYTO Console
             </Link>
           </div>
-          <div className="min-h-[120px]">
-            {runsLoading && (
-              <p className="p-4 text-sm text-[var(--ldv-text-muted)]">Loading…</p>
-            )}
-            {!runsLoading && runs.length === 0 && (
-              <p className="p-4 text-sm text-[var(--ldv-text-muted)]">
-                No pipeline runs yet. Start a run from Pipeline Operations.
-              </p>
-            )}
-            {!runsLoading && runs.length > 0 && (
-              <RunHistoryTable runs={runs} limit={8} showViewAll />
-            )}
+        </section>
+        <section className="ldv-entries" aria-labelledby="workspace-links">
+          <div className="ldv-wrap">
+            <h2 id="workspace-links">Explore the workspace</h2>
+            <div className="ldv-grid">
+              {ENTRIES.map((entry) => (
+                <Link key={entry.href} className="ldv-card" href={entry.href}>
+                  <strong>{entry.title}</strong>
+                  <span>{entry.text}</span>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="px-4 py-2 border-t border-[var(--ldv-border)] bg-[var(--ldv-surface)]/50 text-xs text-[var(--ldv-text-muted)]">
-            Promotions, DQ alerts, and geocode anomalies appear in run details and Data Quality.
+        </section>
+      </main>
+      <footer className="ldv-foot">
+        <div className="ldv-wrap">
+          <div>
+            <strong>LDV Consulting</strong>
+            <p>NERC MYTO workspace for published electricity supply commitments.</p>
           </div>
+          <nav aria-label="Sources and documentation">
+            <a href={COMPANY_SITE} target="_blank" rel="noopener noreferrer">
+              Company website
+            </a>
+            <a href={NERC_MYTO} target="_blank" rel="noopener noreferrer">
+              NERC MYTO documents
+            </a>
+            <Link href="/api-docs">APIs and downloads</Link>
+          </nav>
         </div>
-      </section>
+      </footer>
     </div>
   );
 }

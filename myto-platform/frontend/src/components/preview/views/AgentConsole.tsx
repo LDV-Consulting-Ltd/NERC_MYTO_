@@ -62,7 +62,7 @@ export default function AgentConsole() {
           {loading ? 'Asking…' : 'Ask'}
         </button>
       </div>
-      {demo && <p className="pc-gap">The agent is disabled in demo layout so sample records are not sent as if they were published.</p>}
+      {demo && <p className="pc-gap">The agent is disabled on this sample layout so sample records are not sent as if they were published.</p>}
       {error && <StateBlock tone="error" title="The agent request failed">{error}</StateBlock>}
       {reply && (
         <section className="pc-card">

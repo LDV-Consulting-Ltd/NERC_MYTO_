@@ -3,16 +3,20 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ACCESS_NAV, NAV_GROUPS, PREVIEW_BASE, isNavActive } from './paths';
+import '@/styles/preview-console.css';
+import { ACCESS_NAV, NAV_GROUPS, isNavActive, previewHref, productionPath } from './paths';
 import { useDemo } from './useConsoleData';
 
 const STORAGE_KEY = 'ldv-console-sidebar';
+const COMPANY_SITE = 'https://ldvconsultingltd.ng/';
 
 export default function PreviewShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname() ?? PREVIEW_BASE;
+  const pathname = usePathname() ?? '/overview';
   const demo = useDemo();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const dest = (logical: string) => previewHref(logical, demo);
+  const liveHref = productionPath(demo ? pathname.replace(/^\/preview\/fixtures/, '') || '/' : '/');
 
   useEffect(() => {
     if (window.localStorage.getItem(STORAGE_KEY) === 'collapsed') setCollapsed(true);
@@ -54,7 +58,7 @@ export default function PreviewShell({ children }: { children: React.ReactNode }
       </a>
       <button type="button" className="pc-backdrop" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />
       <aside className="pc-sidebar" aria-label="LDV Data Console">
-        <Link className="pc-brand" href={demo ? `${PREVIEW_BASE}?demo=1` : PREVIEW_BASE}>
+        <Link className="pc-brand" href={dest('/')}>
           <span className="pc-mark" aria-hidden="true">LDV</span>
           <span className="pc-brand-text">
             <span className="pc-brand-name">LDV Data Console</span>
@@ -65,42 +69,50 @@ export default function PreviewShell({ children }: { children: React.ReactNode }
           {NAV_GROUPS.map((group) => (
             <div key={group.id} className="pc-nav-group">
               <p className="pc-nav-label">{group.label}</p>
-              {group.items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={demo ? `${item.href}${item.href.includes('?') ? '&' : '?'}demo=1` : item.href}
-                  aria-current={isNavActive(item.href, pathname) ? 'page' : undefined}
-                  title={item.label}
-                >
-                  <span className="pc-nav-short" aria-hidden="true">{item.short}</span>
-                  <span className="pc-nav-full">{item.label}</span>
-                </Link>
-              ))}
+              {group.items.map((item) => {
+                const href = dest(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={href}
+                    aria-current={isNavActive(href, pathname) ? 'page' : undefined}
+                    title={item.label}
+                  >
+                    <span className="pc-nav-short" aria-hidden="true">{item.short}</span>
+                    <span className="pc-nav-full">{item.label}</span>
+                  </Link>
+                );
+              })}
             </div>
           ))}
         </nav>
         <div className="pc-side-foot">
           <p className="pc-nav-label">Access</p>
-          {ACCESS_NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={demo ? `${item.href}?demo=1` : item.href}
-              aria-current={isNavActive(item.href, pathname) ? 'page' : undefined}
-              title={item.label}
-            >
-              <span className="pc-nav-short" aria-hidden="true">{item.short}</span>
-              <span className="pc-nav-full">{item.label}</span>
-            </Link>
-          ))}
-          <p className="pc-side-extra" style={{ margin: '10px 8px 0', fontSize: 11, color: '#93a6b8' }}>
-            Preview only. Production routes are unchanged.
-          </p>
+          {ACCESS_NAV.map((item) => {
+            const href = dest(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={href}
+                aria-current={isNavActive(href, pathname) ? 'page' : undefined}
+                title={item.label}
+              >
+                <span className="pc-nav-short" aria-hidden="true">{item.short}</span>
+                <span className="pc-nav-full">{item.label}</span>
+              </Link>
+            );
+          })}
+          <a className="pc-side-link" href={COMPANY_SITE} target="_blank" rel="noopener noreferrer">
+            Company website
+          </a>
+          <p className="pc-side-extra">LDV Consulting · NERC MYTO workspace</p>
         </div>
       </aside>
       <div className="pc-workspace">
         {demo && (
           <div className="pc-demo-banner" role="status">
-            Demo data — sample records for layout review, not a published NERC snapshot.
+            Sample records for layout review. These figures are not a published NERC snapshot.{' '}
+            <Link href={liveHref}>Open the live console</Link>
           </div>
         )}
         <header className="pc-topbar">
@@ -121,19 +133,14 @@ export default function PreviewShell({ children }: { children: React.ReactNode }
             <div className="pc-topbar-name">Electricity · NERC MYTO</div>
           </div>
           <div className="pc-topbar-actions">
-            <span className="pc-pill pc-pill-info">Preview</span>
+            <a className="pc-btn pc-btn-ghost" href={COMPANY_SITE} target="_blank" rel="noopener noreferrer">
+              Company website
+            </a>
             {demo ? (
-              <Link className="pc-btn" href={pathname}>
-                Exit demo
-              </Link>
+              <Link className="pc-btn" href={liveHref}>Open live console</Link>
             ) : (
-              <Link className="pc-btn" href={`${pathname}?demo=1`}>
-                Review populated layout
-              </Link>
+              <Link className="pc-btn pc-btn-ghost" href="/">Landing page</Link>
             )}
-            <Link className="pc-btn pc-btn-ghost" href="/">
-              Production app
-            </Link>
           </div>
         </header>
         <main id="console-main" className="pc-main" tabIndex={-1}>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useDQIssues, useRun, useRunEvents } from '@/lib/hooks';
 import { getRunSnapshot } from '@/lib/api';
@@ -16,7 +16,10 @@ import { LoadingRows, MetricTile, PageHeader, StateBlock, StatusPill } from '../
 
 export default function RunDetail() {
   const params = useParams();
-  const runId = (params?.runId as string) ?? '';
+  const pathname = usePathname() ?? '';
+  const fromParams = (params?.run_id as string) || (params?.runId as string) || '';
+  const fromPath = pathname.match(/\/runs\/([^/]+)$/)?.[1] ?? '';
+  const runId = decodeURIComponent(fromParams || fromPath);
   const href = usePreviewHref();
   const [poll, setPoll] = useState(false);
   const [tab, setTab] = useState<'logs' | 'validation' | 'snapshot'>('logs');

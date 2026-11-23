@@ -1,21 +1,18 @@
 import type { Metadata } from 'next';
 import '../styles/globals.css';
 import { Providers } from './providers';
-import AppFrame from '@/components/AppFrame';
 
 export const metadata: Metadata = {
-  title: 'LDV Electricity Data Infrastructure | NERC MYTO National Platform',
+  title: 'LDV Data Console · NERC MYTO',
   description:
-    'National infrastructure intelligence platform — regulator-grade electricity data, DisCo coverage, service commitments, data quality, and API access.',
+    'Explore published electricity supply commitments by distribution company, feeder, and service band.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="min-h-screen">
-        <Providers>
-          <AppFrame>{children}</AppFrame>
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { endpoints } from '@/lib/endpoints';
 import { queryKeys } from '@/lib/queryKeys';
 import { getLatestCommitments, getLatestDiscos, getLatestMonths } from '@/lib/api';
@@ -14,11 +14,11 @@ import {
   DEMO_MONTHS,
   filterDemoCommitments,
 } from './demoData';
-import { previewHref } from './paths';
+import { FIXTURE_BASE, previewHref } from './paths';
 
 export function useDemo(): boolean {
-  const params = useSearchParams();
-  return params.get('demo') === '1';
+  const pathname = usePathname() ?? '';
+  return pathname === FIXTURE_BASE || pathname.startsWith(`${FIXTURE_BASE}/`);
 }
 
 export function usePreviewHref() {

@@ -36,8 +36,8 @@ export default function RunsList() {
         actions={<Link className="pc-btn" href={href('/operations')}>Control panel</Link>}
       />
       {demo && (
-        <StateBlock tone="partial" title="Demo layout does not include sample runs">
-          Exit demo to load live run history. Starting a run from this preview uses the same API as production.
+        <StateBlock tone="partial" title="Sample layout does not include pipeline runs">
+          Open the live console to see run history. This sample layout does not start a run.
         </StateBlock>
       )}
       {runs.isLoading && <LoadingRows />}

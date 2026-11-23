@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -329,33 +329,28 @@ export function ApisView() {
 }
 
 export function CoverageView() {
-  const groups = useMemo(() => FEATURE_INVENTORY, []);
   return (
     <div>
       <PageHeader
         title="Capability map"
-        description="Every current screen has a preview surface or a direct link. The endpoint matrix itself stays on the existing coverage page."
-        productionHref="/coverage"
-        productionLabel="Open endpoint matrix"
+        description="Every workspace screen in this console. The endpoint matrix is on this same page."
       />
       <div className="pc-table-wrap">
         <table className="pc-table">
-          <caption className="pc-sr">Preview and production routes</caption>
+          <caption className="pc-sr">Console routes</caption>
           <thead>
             <tr>
               <th>Capability</th>
               <th>Workspace</th>
-              <th>Preview</th>
-              <th>Current screen</th>
+              <th>Route</th>
             </tr>
           </thead>
           <tbody>
-            {groups.map((item) => (
+            {FEATURE_INVENTORY.map((item) => (
               <tr key={item.id}>
                 <td>{item.label}</td>
                 <td>{item.group}</td>
-                <td><Link href={item.preview}>Open</Link></td>
-                <td>{item.production ? <Link href={item.production}>{item.productionNote}</Link> : item.productionNote}</td>
+                <td>{item.production ? <Link href={item.production}>{item.production}</Link> : item.productionNote}</td>
               </tr>
             ))}
           </tbody>
