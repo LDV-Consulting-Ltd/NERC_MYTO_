@@ -179,7 +179,7 @@ export default function CommitmentsExplorer() {
             )}
           </div>
           <div className="pc-toolbar">
-            <CountLabel shown={rows.length} total={total} />
+            {result.isLoading ? <p className="pc-count">Results loading</p> : <CountLabel shown={rows.length} total={total} />}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a className="pc-btn" href={getExportCommitmentsCsvUrl(exportParams)}>
                 Download CSV

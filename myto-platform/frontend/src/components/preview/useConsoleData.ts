@@ -29,11 +29,22 @@ export function usePreviewHref() {
 
 async function readEnvelope<T>(url: string): Promise<T> {
   const response = await fetch(url);
+  const text = await response.text();
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text.slice(0, 240) || `${response.status} ${response.statusText}`);
+    let message = `${response.status} ${response.statusText}`;
+    try {
+      const parsed = JSON.parse(text) as { detail?: unknown; message?: unknown };
+      if (typeof parsed.detail === 'string') message = parsed.detail;
+      else if (typeof parsed.message === 'string') message = parsed.message;
+    } catch {
+      if (text.trim()) message = text.slice(0, 180);
+    }
+    if (response.status >= 500 || /fetch failed|ECONNREFUSED/i.test(message)) {
+      message = 'The data service is unreachable. No coverage figures are shown in its place.';
+    }
+    throw new Error(message);
   }
-  const body = (await response.json()) as { data?: T } | T;
+  const body = (text ? JSON.parse(text) : {}) as { data?: T } | T;
   if (body && typeof body === 'object' && 'data' in body && (body as { data?: T }).data != null) {
     return (body as { data: T }).data;
   }

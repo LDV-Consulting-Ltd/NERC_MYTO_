@@ -42,7 +42,7 @@ export default function NationalOverview() {
     <div>
       <PageHeader
         title="National Overview"
-        period={freshness.isLoading ? 'Loading…' : period}
+        period={freshness.isLoading ? 'Loading…' : freshness.isError ? 'Unavailable' : period}
         description="DisCo coverage is the entry point. Open a profile or the filtered explorer from any row."
         productionHref="/"
         actions={

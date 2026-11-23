@@ -120,11 +120,13 @@ export default function FeederMap() {
       {(published || demo) && !commitments.isLoading && (
         <div className="pc-map-layout">
           <div>
-            <MapView
-              geojson={{ type: 'FeatureCollection', features }}
-              showHighConfidenceOnly={highConfidence}
-              onPointClick={(feature) => setSelected(selectionFromFeature(feature))}
-            />
+            <div className="pc-map-frame">
+              <MapView
+                geojson={{ type: 'FeatureCollection', features }}
+                showHighConfidenceOnly={highConfidence}
+                onPointClick={(feature) => setSelected(selectionFromFeature(feature))}
+              />
+            </div>
             <p className="pc-count">
               Map points <strong className="pc-num">{formatNumber(features.length)}</strong>
               {' · '}
@@ -158,7 +160,7 @@ export default function FeederMap() {
                     key={item.id}
                     type="button"
                     data-row-id={item.id}
-                    aria-current={selected?.id === item.id}
+                    aria-current={selected?.id === item.id ? 'true' : undefined}
                     onClick={() => selectRow(row)}
                   >
                     <strong>{row.feeder_name}</strong>
